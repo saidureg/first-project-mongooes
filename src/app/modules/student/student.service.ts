@@ -11,7 +11,7 @@ const getAllStudentsFromDB = async (): Promise<Student[]> => {
   return result;
 };
 
-const getSingleStudentFromDB = async (id: string): Promise<Student> => {
+const getSingleStudentFromDB = async (id: string): Promise<Student | null> => {
   const result = await StudentModel.findById(id);
   return result;
 };
