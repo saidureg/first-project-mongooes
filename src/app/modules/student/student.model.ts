@@ -2,8 +2,8 @@ import { model, Schema } from 'mongoose';
 import {
   Guardian,
   LocalGuardian,
-  Student,
   StudentName,
+  TStudent,
 } from './student.interface';
 
 const StudentNameSchema = new Schema<StudentName>({
@@ -105,12 +105,18 @@ const LocalGuardianSchema = new Schema<LocalGuardian>({
   },
 });
 
-const studentSchema = new Schema<Student>({
+const studentSchema = new Schema<TStudent>({
   id: {
     type: String,
     trim: true,
     required: [true, 'Student ID is required. Please provide a unique ID.'],
     unique: true,
+  },
+  user: {
+    type: Schema.Types.ObjectId,
+    required: [true, 'User ID is required'],
+    unique: true,
+    ref: 'User',
   },
   name: {
     type: StudentNameSchema,
@@ -191,17 +197,8 @@ const studentSchema = new Schema<Student>({
     ],
   },
   profilePicture: { type: String },
-  isActive: {
-    type: String,
-    enum: {
-      values: ['active', 'inactive'],
-      message:
-        '{VALUE} is not a valid status. Please choose either "active" or "inactive".',
-    },
-    default: 'active',
-  },
 });
 
-const StudentModel = model<Student>('Student', studentSchema);
+const StudentModel = model<TStudent>('Student', studentSchema);
 
 export default StudentModel;

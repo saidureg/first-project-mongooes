@@ -1,23 +1,17 @@
-import { Student } from './student.interface';
+import { TStudent } from './student.interface';
 import StudentModel from './student.model';
 
-const createStudentIntoDB = async (student: Student): Promise<Student> => {
-  const result = await StudentModel.create(student);
-  return result;
-};
-
-const getAllStudentsFromDB = async (): Promise<Student[]> => {
+const getAllStudentsFromDB = async (): Promise<TStudent[]> => {
   const result = await StudentModel.find();
   return result;
 };
 
-const getSingleStudentFromDB = async (id: string): Promise<Student | null> => {
+const getSingleStudentFromDB = async (id: string): Promise<TStudent | null> => {
   const result = await StudentModel.findById(id);
   return result;
 };
 
 export const StudentService = {
-  createStudentIntoDB,
   getAllStudentsFromDB,
   getSingleStudentFromDB,
 };
