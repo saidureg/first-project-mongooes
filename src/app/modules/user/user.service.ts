@@ -13,7 +13,7 @@ const createStudentIntoDB = async (password: string, studentData: TStudent) => {
   userData.role = 'student';
 
   // set the student id
-  userData.id = '211015013';
+  userData.id = '211015014';
 
   // create a new user
   const newUser = await User.create(userData);
@@ -26,6 +26,11 @@ const createStudentIntoDB = async (password: string, studentData: TStudent) => {
 
     // create a new student
     const newStudent = await StudentModel.create(studentData);
+
+    // if new student is not created, then delete the user
+    if (!newStudent) {
+      await User.findByIdAndDelete(newUser._id);
+    }
 
     return newStudent;
   }
