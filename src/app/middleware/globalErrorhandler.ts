@@ -9,8 +9,8 @@ const globalErrorHandler = (
 ) => {
   res.status(500).json({
     success: false,
-    message: 'Something went wrong. Please try again later.',
-    error: err.message,
+    message: err.message || 'Internal Server Error',
+    error: err,
   });
 };
 

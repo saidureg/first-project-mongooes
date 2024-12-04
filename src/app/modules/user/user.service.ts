@@ -28,9 +28,9 @@ const createStudentIntoDB = async (password: string, studentData: TStudent) => {
     const newStudent = await StudentModel.create(studentData);
 
     // if new student is not created, then delete the user
-    if (!newStudent) {
-      await User.findByIdAndDelete(newUser._id);
-    }
+    // if (!newStudent) {
+    //   await User.findByIdAndDelete(newUser._id);
+    // }
 
     return newStudent;
   }

@@ -134,7 +134,7 @@ const studentSchema = new Schema<TStudent>({
     },
     required: [true, 'Gender is required. Please specify the gender.'],
   },
-  dateOfBirth: { type: String },
+  dateOfBirth: { type: Date },
   email: {
     type: String,
     trim: true,
