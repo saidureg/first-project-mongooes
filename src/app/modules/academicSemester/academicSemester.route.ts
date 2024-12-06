@@ -17,20 +17,17 @@ router.post(
   academicSemesterControllers.createAcademicSemester,
 );
 
-router.get(
-  '/get-academic-semesters',
-  academicSemesterControllers.getAllAcademicSemesters,
-);
+router.get('/', academicSemesterControllers.getAllAcademicSemesters);
 
 router.get(
-  '/get-academic-semester/:semesterId',
+  '/:semesterId',
   academicSemesterControllers.getSingleAcademicSemester,
 );
 
 router.patch(
-  '/update-academic-semester/:semesterId',
+  '/:semesterId',
   validateRequest(
-    academicSemesterValidations.createAcademicSemesterValidationSchema,
+    academicSemesterValidations.updateAcademicSemesterValidationSchema,
   ),
   academicSemesterControllers.updateAcademicSemester,
 );
