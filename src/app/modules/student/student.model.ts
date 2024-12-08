@@ -205,6 +205,14 @@ const studentSchema = new Schema<TStudent>(
       ],
       ref: 'AcademicSemester',
     },
+    academicDepartment: {
+      type: Schema.Types.ObjectId,
+      required: [
+        true,
+        'Academic Department is required. Please provide a valid department ID.',
+      ],
+      ref: 'AcademicDepartment',
+    },
   },
   {
     timestamps: true,
