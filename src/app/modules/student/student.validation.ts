@@ -120,6 +120,53 @@ export const CreateStudentValidationSchema = z.object({
       profilePicture: z.string().optional(),
       admissionSemester: z.string(),
       academicDepartment: z.string(),
+      isDeleted: z.boolean().optional(),
+    }),
+  }),
+});
+
+const updateStudentNameValidationSchema = z.object({
+  firstName: z.string().min(1).max(20).optional(),
+  middleName: z.string().optional(),
+  lastName: z.string().min(1).max(20).optional(),
+});
+
+const updateGuardianValidationSchema = z.object({
+  fatherName: z.string().min(1).optional(),
+  fatherOccupation: z.string().min(1).optional(),
+  fatherContact: z.string().min(1).optional(),
+  motherName: z.string().min(1).optional(),
+  motherOccupation: z.string().min(1).optional(),
+  motherContact: z.string().min(1).optional(),
+});
+
+const updateLocalGuardianValidationSchema = z.object({
+  name: z.string().min(1).optional(),
+  occupation: z.string().min(1).optional(),
+  contactNo: z.string().min(1).optional(),
+  address: z.string().min(1).optional(),
+});
+
+export const UpdateStudentValidationSchema = z.object({
+  body: z.object({
+    student: z.object({
+      name: updateStudentNameValidationSchema.optional(),
+      gender: z.enum(['male', 'female']).optional(),
+      dateOfBirth: z.string().optional(),
+      email: z.string().email().optional(),
+      contactNumber: z.string().optional(),
+      emergencyContact: z.string().optional(),
+      bloodGroup: z
+        .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
+        .optional(),
+      presentAddress: z.string().optional(),
+      permanentAddress: z.string().optional(),
+      guardian: updateGuardianValidationSchema.optional(),
+      localGuardian: updateLocalGuardianValidationSchema.optional(),
+      profilePicture: z.string().optional(),
+      admissionSemester: z.string().optional(),
+      academicDepartment: z.string().optional(),
+      isDeleted: z.boolean().optional(),
     }),
   }),
 });
@@ -127,4 +174,5 @@ export const CreateStudentValidationSchema = z.object({
 // Exporting the schema
 export const StudentValidations = {
   CreateStudentValidationSchema,
+  UpdateStudentValidationSchema,
 };

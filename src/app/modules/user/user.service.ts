@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import config from '../../config';
 import { AcademicSemester } from '../academicSemester/academicSemester.model';
 import { TStudent } from '../student/student.interface';
@@ -5,6 +6,7 @@ import StudentModel from '../student/student.model';
 import { TUser } from './user.interface';
 import { User } from './user.model';
 import { generateStudentId } from './user.utils';
+import AppError from '../../errors/AppErrors';
 
 const createStudentIntoDB = async (password: string, payload: TStudent) => {
   const userData: Partial<TUser> = {};
@@ -21,32 +23,44 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
   );
 
   if (!admissionSemester) {
-    throw new Error('Invalid admission semester provided.');
+    throw new AppError(400, 'Admission semester not found');
   }
 
-  userData.id = await generateStudentId(admissionSemester);
+  const session = await mongoose.startSession();
 
-  // set the student id
-  // userData.id = '211015014';
+  try {
+    // start the transaction
+    session.startTransaction();
 
-  // create a new user
-  const newUser = await User.create(userData);
+    // set generated student id
+    userData.id = await generateStudentId(admissionSemester);
 
-  // create a new student
-  if (Object.keys(newUser).length) {
-    // set id,  _id as user
-    payload.id = newUser.id;
-    payload.user = newUser._id;
+    // create a new user (transaction-1)
+    const newUser = await User.create([userData], { session });
 
     // create a new student
-    const newStudent = await StudentModel.create(payload);
+    if (!newUser.length) {
+      throw new AppError(400, 'Failed to create a new user');
+    }
+    // set id,  _id as user
+    payload.id = newUser[0].id;
+    payload.user = newUser[0]._id;
 
-    // if new student is not created, then delete the user
-    // if (!newStudent) {
-    //   await User.findByIdAndDelete(newUser._id);
-    // }
+    // create a new student (transaction-2)
+    const newStudent = await StudentModel.create([payload], { session });
 
+    if (!newStudent.length) {
+      throw new AppError(400, 'Failed to create a new student');
+    }
+
+    // commit the transaction
+    await session.commitTransaction();
+    session.endSession();
     return newStudent;
+  } catch (err) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw err;
   }
 };
 
