@@ -126,13 +126,26 @@ const deleteStudentFromDB = async (id: string) => {
       throw new AppError(400, 'Failed to delete student');
     }
 
-    const deleteUser = await User.findOneAndUpdate(
-      { id },
+    // const deleteUser = await User.findOneAndUpdate(
+    //   { id },
+    //   { isDeleted: true },
+    //   { new: true, session },
+    // );
+
+    // if (!deleteUser) {
+    //   throw new AppError(400, 'Failed to delete user');
+    // }
+
+    // get user _id from deletedStudent
+    const userId = deleteStudent.user;
+
+    const deletedUser = await User.findByIdAndUpdate(
+      userId,
       { isDeleted: true },
       { new: true, session },
     );
 
-    if (!deleteUser) {
+    if (!deletedUser) {
       throw new AppError(400, 'Failed to delete user');
     }
 

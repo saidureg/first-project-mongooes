@@ -2,6 +2,7 @@ import { model, Schema } from 'mongoose';
 import {
   Guardian,
   LocalGuardian,
+  StudentModel,
   StudentName,
   TStudent,
 } from './student.interface';
@@ -105,7 +106,7 @@ const LocalGuardianSchema = new Schema<LocalGuardian>({
   },
 });
 
-const studentSchema = new Schema<TStudent>(
+const studentSchema = new Schema<TStudent, StudentModel>(
   {
     id: {
       type: String,
@@ -216,6 +217,7 @@ const studentSchema = new Schema<TStudent>(
     isDeleted: { type: Boolean, default: false },
   },
   {
+    toJSON: { virtuals: true },
     timestamps: true,
   },
 );
@@ -244,6 +246,6 @@ studentSchema.statics.isUserExist = async function (id: string) {
   return existingUser;
 };
 
-const StudentModel = model<TStudent>('Student', studentSchema);
+const StudentModel = model<TStudent, StudentModel>('Student', studentSchema);
 
 export default StudentModel;
