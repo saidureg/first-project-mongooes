@@ -1,6 +1,7 @@
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppErrors';
 import { AcademicSemester } from '../academicSemester/academicSemester.model';
+import { SemesterRegistrationStatusEnum } from './semesterRegistration.constant';
 import { TSemesterRegistration } from './semesterRegistration.interface';
 import { SemesterRegistration } from './semesterRegistration.model';
 
@@ -13,7 +14,10 @@ const createSemesterRegistrationIntoDB = async (
 
   const isThereAnyUpcomingOrOngoingSemester =
     await SemesterRegistration.findOne({
-      $or: [{ status: 'UPCOMING' }, { status: 'ONGOING' }],
+      $or: [
+        { status: SemesterRegistrationStatusEnum.UPCOMING },
+        { status: SemesterRegistrationStatusEnum.ONGOING },
+      ],
     });
 
   if (isThereAnyUpcomingOrOngoingSemester) {
@@ -82,16 +86,39 @@ const updateSemesterRegistrationIntoDB = async (
 
   // if the requested semester registration is 'ENDED' then it can't be updated
   const currentSemesterStatus = isSemesterRegistrationExist?.status;
+  const requestedSemesterStatus = payload?.status;
 
-  if (currentSemesterStatus === 'ENDED') {
+  if (currentSemesterStatus === SemesterRegistrationStatusEnum.ENDED) {
     throw new AppError(
       400,
       `Semester Registration is already ${currentSemesterStatus}`,
     );
   }
 
+  // UPCOMING --> ONGOING --> ENDED
+  if (
+    currentSemesterStatus === SemesterRegistrationStatusEnum.UPCOMING &&
+    requestedSemesterStatus === SemesterRegistrationStatusEnum.ENDED
+  ) {
+    throw new AppError(
+      400,
+      `You can not directly change status from ${currentSemesterStatus} to ${requestedSemesterStatus}`,
+    );
+  }
+
+  if (
+    currentSemesterStatus === SemesterRegistrationStatusEnum.ONGOING &&
+    requestedSemesterStatus === SemesterRegistrationStatusEnum.UPCOMING
+  ) {
+    throw new AppError(
+      400,
+      `You can not directly change status from ${currentSemesterStatus} to ${requestedSemesterStatus}`,
+    );
+  }
+
   const result = await SemesterRegistration.findByIdAndUpdate(id, payload, {
     new: true,
+    runValidators: true,
   });
 
   return result;
