@@ -1,9 +1,11 @@
+import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppErrors';
 import { AcademicDepartment } from '../academicDepartment/academicDepartment.model';
 import { AcademicFaculty } from '../academicFaculty/academicFaculty.model';
 import { courseModel } from '../course/course.model';
 import { Faculty } from '../Faculty/faculty.model';
 import { SemesterRegistration } from '../semesterRegistration/semesterRegistration.model';
+import { OfferedCourseSearchableFields } from './offeredCourse.constant';
 import { TOfferedCourse } from './offeredCourse.interface';
 import { OfferedCourse } from './offeredCourse.model';
 import { hasTimeConflict } from './offeredCourse.utils';
@@ -198,7 +200,30 @@ const updateOfferedCourseIntoDB = async (
   return result;
 };
 
+const getAllOfferedCoursesFromDB = async (
+  query: Record<string, unknown>,
+): Promise<TOfferedCourse[]> => {
+  const offeredCourseQuery = new QueryBuilder(
+    OfferedCourse.find()
+      .populate('semesterRegistration')
+      .populate('academicSemester')
+      .populate('academicFaculty')
+      .populate('academicDepartment')
+      .populate('course')
+      .populate('faculty'),
+    query,
+  )
+    .search(OfferedCourseSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+  const result = await offeredCourseQuery.modelQuery;
+  return result;
+};
+
 export const offeredCourseService = {
   createOfferedCourseIntoDB,
   updateOfferedCourseIntoDB,
+  getAllOfferedCoursesFromDB,
 };
