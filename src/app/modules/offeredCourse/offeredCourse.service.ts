@@ -5,7 +5,6 @@ import { AcademicFaculty } from '../academicFaculty/academicFaculty.model';
 import { courseModel } from '../course/course.model';
 import { Faculty } from '../Faculty/faculty.model';
 import { SemesterRegistration } from '../semesterRegistration/semesterRegistration.model';
-import { OfferedCourseSearchableFields } from './offeredCourse.constant';
 import { TOfferedCourse } from './offeredCourse.interface';
 import { OfferedCourse } from './offeredCourse.model';
 import { hasTimeConflict } from './offeredCourse.utils';
@@ -145,6 +144,43 @@ const createOfferedCourseIntoDB = async (payload: TOfferedCourse) => {
   return result;
 };
 
+const getAllOfferedCoursesFromDB = async (
+  query: Record<string, unknown>,
+): Promise<TOfferedCourse[]> => {
+  const offeredCourseQuery = new QueryBuilder(
+    OfferedCourse.find()
+      .populate('semesterRegistration')
+      .populate('academicSemester')
+      .populate('academicFaculty')
+      .populate('academicDepartment')
+      .populate('course')
+      .populate('faculty'),
+    query,
+  )
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+  const result = await offeredCourseQuery.modelQuery;
+  return result;
+};
+
+const getSingleOfferedCourseFromDB = async (id: string) => {
+  const result = await OfferedCourse.findById(id)
+    .populate('semesterRegistration')
+    .populate('academicSemester')
+    .populate('academicFaculty')
+    .populate('academicDepartment')
+    .populate('course')
+    .populate('faculty');
+
+  if (!result) {
+    throw new AppError(404, 'Offered Course not found');
+  }
+
+  return result;
+};
+
 const updateOfferedCourseIntoDB = async (
   id: string,
   payload: Pick<TOfferedCourse, 'faculty' | 'days' | 'startTime' | 'endTime'>,
@@ -200,25 +236,32 @@ const updateOfferedCourseIntoDB = async (
   return result;
 };
 
-const getAllOfferedCoursesFromDB = async (
-  query: Record<string, unknown>,
-): Promise<TOfferedCourse[]> => {
-  const offeredCourseQuery = new QueryBuilder(
-    OfferedCourse.find()
-      .populate('semesterRegistration')
-      .populate('academicSemester')
-      .populate('academicFaculty')
-      .populate('academicDepartment')
-      .populate('course')
-      .populate('faculty'),
-    query,
-  )
-    .search(OfferedCourseSearchableFields)
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
-  const result = await offeredCourseQuery.modelQuery;
+const deleteOfferedCourseFromDB = async (id: string) => {
+  /**
+   * Step 1: check if the offered course exists
+   * Step 2: check if the semester registration status is upcoming
+   * Step 3: delete the offered course
+   */
+
+  const isOfferedCourseExists = await OfferedCourse.findById(id);
+
+  if (!isOfferedCourseExists) {
+    throw new AppError(404, 'Offered Course not found');
+  }
+
+  const semesterRegistration = isOfferedCourseExists.semesterRegistration;
+
+  const semesterRegistrationStatus =
+    await SemesterRegistration.findById(semesterRegistration).select('status');
+
+  if (semesterRegistrationStatus?.status !== 'UPCOMING') {
+    throw new AppError(
+      400,
+      `You can not delete the offered course as it is ${semesterRegistrationStatus?.status} status`,
+    );
+  }
+
+  const result = await OfferedCourse.findByIdAndDelete(id);
   return result;
 };
 
@@ -226,4 +269,6 @@ export const offeredCourseService = {
   createOfferedCourseIntoDB,
   updateOfferedCourseIntoDB,
   getAllOfferedCoursesFromDB,
+  getSingleOfferedCourseFromDB,
+  deleteOfferedCourseFromDB,
 };
